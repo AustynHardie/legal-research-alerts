@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal Research Alerts</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #0e0e0e;
+    --paper: #f5f0e8;
+    --cream: #ede7d5;
+    --rule: #c8b99a;
+    --accent: #8b2e00;
+    --accent-light: #c44d00;
+    --steel: #3a4a5c;
+    --muted: #7a6e5e;
+    --success: #1a5c3a;
+    --success-bg: #e8f5ee;
+    --warning-bg: #fff8e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .masthead {
+    border-bottom: 3px double var(--rule);
+    padding: 28px 48px 20px;
+    background: var(--paper);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .masthead-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .masthead h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .masthead h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .date-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+  }
+
+  .masthead-sub {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* MAIN LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    min-height: calc(100vh - 100px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--rule);
+    padding: 28px 20px;
+    background: var(--cream);
+  }
+
+  .sidebar-section {
+    margin-bottom: 28px;
+  }
+
+  .sidebar-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+  }
+
+  /* ALERT CARDS in sidebar */
+  .alert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .alert-card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--rule);
+    border-radius: 2px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .alert-card:hover {
+    border-left-color: var(--accent);
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .alert-card.active {
+    border-left-color: var(--accent);
+    background: white;
+  }
+
+  .alert-card.has-results {
+    border-left-color: var(--success);
+  }
+
+  .alert-card.has-results.active {
+    border-left-color: var(--accent);
+  }
+
+  .alert-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 3px;
+  }
+
+  .alert-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .result-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    display: inline-block;
+    margin-left: 4px;
+  }
+
+  .alert-card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .btn-small {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border: 1px solid var(--rule);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 1px;
+    transition: all 0.1s;
+  }
+
+  .btn-small:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .btn-small.danger:hover {
+    background: #c00;
+    border-color: #c00;
+  }
+
+  /* ADD ALERT FORM */
+  .add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-group label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 7px 9px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78rem;
+    color: var(--ink);
+    border-radius: 1px;
+    outline: none;
+    resize: vertical;
+  }
+
+  .form-group textarea {
+    min-height: 70px;
+    font-size: 0.73rem;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: var(--accent);
+  }
+
+  .btn-primary {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 8px 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: background 0.15s;
+    width: 100%;
+  }
+
+  .btn-primary:hover { background: var(--accent-light); }
+  .btn-primary:disabled { background: var(--rule); cursor: not-allowed; }
+
+  /* MAIN CONTENT */
+  .main-content {
+    padding: 36px 48px;
+  }
+
+  .content-header {
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .content-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .content-title-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .content-query {
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--steel);
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .content-query-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .content-query-text {
+    font-size: 0.83rem;
+    color: var(--ink);
+    font-style: italic;
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* RUN BUTTON */
+  .run-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .btn-run {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    padding: 10px 22px;
+    background: var(--accent);
+    color: white;
+    border: 2px solid var(--accent);
+    cursor: pointer;
+    border-radius: 1px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-run:hover { background: var(--accent-light); border-color: var(--accent-light); }
+  .btn-run:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-cancel {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    padding: 10px 18px;
+    background: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+    cursor: pointer;
+    border-radius: 1px;
+    transition: all 0.15s;
+  }
+
+  .btn-cancel:hover { background: var(--accent); color: white; }
+
+
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .btn-run.loading .spinner { display: block; }
+  .btn-run.loading .run-icon { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULTS */
+  .results-container {
+    min-height: 300px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+
+  .empty-state p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+
+  .empty-state small {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .result-content {
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .result-timestamp {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    padding: 4px 10px;
+    border-radius: 1px;
+  }
+
+  /* RENDERED MARKDOWN OUTPUT */
+  .report-body {
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: #1a1a1a;
+  }
+
+  .report-body h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 2px solid var(--rule);
+    padding-bottom: 10px;
+    margin: 28px 0 16px;
+  }
+
+  .report-body h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 24px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .report-body h2::before {
+    content: '§';
+    font-style: italic;
+    color: var(--rule);
+    font-size: 1.1em;
+  }
+
+  .report-body h3 {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--steel);
+    margin: 16px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .report-body p {
+    margin-bottom: 12px;
+  }
+
+  .report-body strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .report-body em {
+    font-style: italic;
+    color: var(--steel);
+  }
+
+  .report-body ul, .report-body ol {
+    margin: 8px 0 14px 20px;
+  }
+
+  .report-body li {
+    margin-bottom: 6px;
+  }
+
+  .report-body blockquote {
+    border-left: 3px solid var(--accent);
+    margin: 14px 0;
+    padding: 10px 16px;
+    background: var(--cream);
+    font-style: italic;
+    font-family: 'Playfair Display', serif;
+    color: var(--steel);
+  }
+
+  .report-body hr {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 20px 0;
+  }
+
+  .report-body code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8em;
+    background: var(--cream);
+    padding: 1px 5px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+
+  .no-results-notice {
+    background: var(--warning-bg);
+    border: 1px solid #e8d090;
+    border-left: 3px solid #c8a000;
+    padding: 16px 20px;
+    border-radius: 0 2px 2px 0;
+    margin-top: 16px;
+  }
+
+  .no-results-notice p {
+    font-size: 0.85rem;
+    color: #5a4800;
+  }
+
+  /* SCHEDULE BADGE */
+  .schedule-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--success);
+    border: 1px solid var(--success);
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--success-bg);
+  }
+
+  /* EDIT MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(14,14,14,0.6);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-top: 4px solid var(--accent);
+    padding: 28px;
+    width: 480px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 2px 6px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-secondary {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 8px 14px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--rule);
+    cursor: pointer;
+    border-radius: 1px;
+    flex: 1;
+  }
+
+  .btn-secondary:hover { background: var(--cream); }
+
+  /* WELCOME */
+  .welcome-pane {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .welcome-pane h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    font-style: italic;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+
+  .welcome-pane p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    max-width: 420px;
+    line-height: 1.65;
+    margin-bottom: 8px;
+  }
+
+  .welcome-arrow {
+    margin-top: 28px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .welcome-arrow::before { content: '←'; font-size: 1.2rem; }
+
+  /* Tags row */
+  .tags-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 2px 8px;
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    border-radius: 1px;
+  }
+
+  /* SOURCES */
+  .sources-section {
+    margin-top: 32px;
+    border-top: 2px solid var(--rule);
+    padding-top: 20px;
+  }
+
+  .sources-heading {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sources-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .source-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .source-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .source-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent);
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    min-width: 24px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    border-radius: 1px;
+  }
+
+  .source-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .source-title {
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+    line-height: 1.3;
+  }
+
+  .source-url {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--accent);
+    text-decoration: none;
+    word-break: break-all;
+    opacity: 0.85;
+    transition: opacity 0.1s;
+    display: inline-block;
+  }
+
+  .source-url:hover { opacity: 1; text-decoration: underline; }
+
+  .source-snippet {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: 3px;
+    font-style: italic;
+  }
+
+  /* METHODOLOGY & BIAS */
+  .methodology-section {
+    margin-top: 28px;
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--steel);
+    border-radius: 0 2px 2px 0;
+    overflow: hidden;
+  }
+
+  .methodology-toggle {
+    width: 100%;
+    background: var(--cream);
+    border: none;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+    gap: 8px;
+    transition: background 0.15s;
+  }
+
+  .methodology-toggle:hover { background: #e4dcc9; }
+
+  .methodology-toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .methodology-toggle-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--steel);
+    font-weight: 500;
+  }
+
+  .methodology-toggle-sub {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .methodology-chevron {
+    font-size: 0.7rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .methodology-toggle.open .methodology-chevron { transform: rotate(180deg); }
+
+  .methodology-body {
+    display: none;
+    padding: 18px 20px 20px;
+    background: var(--paper);
+  }
+
+  .methodology-body.open { display: block; animation: fadeIn 0.2s ease; }
+
+  .methodology-body h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.63rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--steel);
+    margin: 14px 0 6px;
+  }
+
+  .methodology-body h4:first-child { margin-top: 0; }
+
+  .methodology-body p, .methodology-body li {
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: #3a3a3a;
+  }
+
+  .methodology-body ul {
+    margin: 4px 0 8px 18px;
+  }
+
+  .bias-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin: 2px 3px 2px 0;
+  }
+
+  .bias-tag.caution {
+    background: #fff3cd;
+    color: #7a5700;
+    border: 1px solid #e8c740;
+  }
+
+  .bias-tag.info {
+    background: #e8f0fb;
+    color: #1a3a6b;
+    border: 1px solid #7099d8;
+  }
+
+  .bias-tag.warning {
+    background: #fdecea;
+    color: #8b1c1c;
+    border: 1px solid #e07070;
+  }
+
+  .bias-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin: 8px 0;
+  }
+
+  .search-queries-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .search-query-pill {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    padding: 3px 9px;
+    border-radius: 1px;
+    margin: 2px 3px 2px 0;
+    color: var(--ink);
+  }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .masthead { padding: 18px 20px 14px; }
+    .main-content { padding: 24px 20px; }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--rule); }
+  }
+
+  /* API KEY BANNER */
+  .api-key-banner {
+    background: #fff8e8;
+    border-bottom: 1px solid #e8d090;
+    padding: 9px 48px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 0.78rem;
+    color: #5a4800;
+    flex-wrap: wrap;
+  }
+  .api-key-banner.hidden { display: none; }
+  .api-key-banner strong { font-weight: 500; white-space: nowrap; }
+  .api-key-input-row { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 200px; }
+  .api-key-input-row input {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    padding: 5px 10px;
+    border: 1px solid #c8a000;
+    background: white;
+    color: var(--ink);
+    border-radius: 1px;
+    flex: 1;
+    max-width: 340px;
+    outline: none;
+  }
+  .api-key-input-row input:focus { border-color: var(--accent); }
+  .btn-save-key {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 5px 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 1px;
+    white-space: nowrap;
+  }
+  .btn-save-key:hover { background: var(--accent-light); }
+  .api-key-set { display: flex; align-items: center; gap: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--success); }
+  .btn-clear-key {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--rule);
+    cursor: pointer;
+    border-radius: 1px;
+  }
+  .btn-clear-key:hover { color: #c00; border-color: #c00; }
+  .api-key-hint { font-size: 0.68rem; color: var(--muted); }
+  .api-key-hint a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-top">
+    <h1>Legal Research <em>Alerts</em></h1>
+    <div class="date-badge" id="currentDate"></div>
+  </div>
+  <div class="masthead-sub">Weekly automated monitoring · International tax law & beyond</div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Active Alerts</div>
+      <div class="alert-list" id="alertList"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Add New Alert</div>
+      <div class="add-form">
+        <div class="form-group">
+          <label>Alert Name</label>
+          <input type="text" id="newName" placeholder="e.g. MLI Article 7 PPT" />
+        </div>
+        <div class="form-group">
+          <label>Research Query / Description</label>
+          <textarea id="newQuery" placeholder="Describe what to research — be specific about jurisdiction, legal provision, or doctrine..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Frequency</label>
+          <select id="newFrequency">
+            <option value="weekly">Weekly</option>
+            <option value="daily">Daily</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="addAlert()">+ Add Alert</button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content" id="mainContent">
+    <div class="welcome-pane">
+      <h2>Your research command centre.</h2>
+      <p>Select an alert on the left to run it, or add a new alert to begin monitoring any legal topic worldwide.</p>
+      <p>Each alert uses AI-powered web search to surface the latest judicial decisions, regulatory changes, or doctrine developments — summarised in a structured weekly report.</p>
+      <div class="welcome-arrow">Select an alert to begin</div>
+    </div>
+  </main>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">
+      Edit Alert
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="add-form">
+      <div class="form-group">
+        <label>Alert Name</label>
+        <input type="text" id="editName" />
+      </div>
+      <div class="form-group">
+        <label>Research Query</label>
+        <textarea id="editQuery"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Frequency</label>
+        <select id="editFrequency">
+          <option value="weekly">Weekly</option>
+          <option value="daily">Daily</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveEdit()" style="flex:2">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+const DEFAULT_ALERTS = [
+  {
+    id: 'mli-ppt',
+    name: 'MLI Art. 7 — Principal Purpose Test',
+    query: `Search for any judicial decisions, tribunal rulings, court cases, or administrative proceedings from the past 7 days in any country that consider, interpret, or apply the Principal Purpose Test (PPT) under Article 7(1) of the OECD Multilateral Convention to Implement Tax Treaty Related Measures to Prevent Base Erosion and Profit Shifting (the MLI / Multilateral Instrument). 
+
+Include: case names, jurisdictions, courts/tribunals, dates, and a substantive summary of how the PPT was applied or discussed. Note any novel interpretations, comparisons with the OECD Commentary, or dissenting views. If no new cases are found in the past 7 days, say so explicitly and note the most recent precedent you are aware of.`,
+    frequency: 'weekly',
+    lastRun: null,
+    lastResult: null
+  }
+];
+
+let alerts = JSON.parse(localStorage.getItem('legalAlerts') || 'null') || DEFAULT_ALERTS;
+let activeAlertId = null;
+let editingAlertId = null;
+let activeAbortController = null;
+
+function save() {
+  localStorage.setItem('legalAlerts', JSON.stringify(alerts));
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+
+function renderAlertList() {
+  const list = document.getElementById('alertList');
+  if (alerts.length === 0) {
+    list.innerHTML = `<div style="font-size:0.75rem;color:var(--muted);font-style:italic;padding:8px 0;">No alerts yet. Add one below.</div>`;
+    return;
+  }
+  list.innerHTML = alerts.map(a => `
+    <div class="alert-card ${a.id === activeAlertId ? 'active' : ''} ${a.lastResult ? 'has-results' : ''}"
+         onclick="selectAlert('${a.id}')">
+      <div class="alert-name">${escHtml(a.name)}</div>
+      <div class="alert-meta">
+        <span>${a.frequency}</span>
+        <span>${a.lastRun ? 'ran ' + relativeTime(a.lastRun) : 'never run'}${a.lastResult ? '<span class="result-dot"></span>' : ''}</span>
+      </div>
+      <div class="alert-card-actions" onclick="event.stopPropagation()">
+        <button class="btn-small" onclick="openEditModal('${a.id}')">Edit</button>
+        <button class="btn-small danger" onclick="deleteAlert('${a.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectAlert(id) {
+  activeAlertId = id;
+  renderAlertList();
+  const alert = alerts.find(a => a.id === id);
+  if (!alert) return;
+  renderMainContent(alert);
+}
+
+function renderMainContent(alert) {
+  const main = document.getElementById('mainContent');
+  const hasResult = alert.lastResult;
+
+  main.innerHTML = `
+    <div class="content-header">
+      <div>
+        <div class="content-title">${escHtml(alert.name)}</div>
+        <div class="content-title-meta">
+          <span class="schedule-badge">⏱ ${alert.frequency}</span>
+          &nbsp;&nbsp;${alert.lastRun ? 'Last run: ' + new Date(alert.lastRun).toLocaleString() : 'Not yet run'}
+        </div>
+      </div>
+      <div class="run-section">
+        <button class="btn-run" id="runBtn" onclick="runAlert('${alert.id}')">
+          <span class="run-icon">▶ Run Now</span>
+          <span class="spinner"></span>
+          <span class="loading-text" style="display:none">Researching…</span>
+        </button>
+        <button class="btn-cancel" id="cancelBtn" onclick="cancelAlert()" style="display:none">✕ Cancel</button>
+      </div>
+    </div>
+
+    <div class="content-query">
+      <div class="content-query-label">Research Query</div>
+      <div class="content-query-text">${escHtml(alert.query.substring(0, 240))}${alert.query.length > 240 ? '…' : ''}</div>
+    </div>
+
+    <div class="results-container" id="resultsContainer">
+      ${hasResult ? renderResult(alert) : renderEmptyState()}
+    </div>
+  `;
+}
+
+function renderEmptyState() {
+  return `
+    <div class="empty-state">
+      <div class="empty-state-icon">⚖</div>
+      <p>No results yet for this alert.</p>
+      <small>Click "Run Now" to fetch the latest research</small>
+    </div>`;
+}
+
+function renderResult(alert) {
+  const sources = alert.lastSources || [];
+  const queries = alert.lastSearchQueries || [];
+  const methodology = alert.lastMethodology || null;
+
+  const sourcesHtml = sources.length > 0 ? `
+    <div class="sources-section">
+      <div class="sources-heading">Sources consulted (${sources.length})</div>
+      <ul class="source-list">
+        ${sources.map((s, i) => `
+          <li class="source-item">
+            <div class="source-number">${i + 1}</div>
+            <div class="source-details">
+              <div class="source-title">${escHtml(s.title || 'Untitled source')}</div>
+              <a class="source-url" href="${escHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escHtml(s.url)}</a>
+              ${s.snippet ? `<div class="source-snippet">${escHtml(s.snippet.substring(0, 180))}${s.snippet.length > 180 ? '…' : ''}</div>` : ''}
+            </div>
+          </li>`).join('')}
+      </ul>
+    </div>` : '';
+
+  const methodologyHtml = `
+    <div class="methodology-section">
+      <button class="methodology-toggle" onclick="toggleMethodology(this)">
+        <div class="methodology-toggle-left">
+          <span style="font-size:1rem">🔍</span>
+          <div>
+            <div class="methodology-toggle-label">Methodology & Analytical Transparency</div>
+            <div class="methodology-toggle-sub">How this report was produced, sources of bias, and limitations</div>
+          </div>
+        </div>
+        <span class="methodology-chevron">▼</span>
+      </button>
+      <div class="methodology-body">
+
+        <h4>How This Report Was Produced</h4>
+        <p>${methodology ? escHtml(methodology) : 'This report was generated by an AI language model (Claude, by Anthropic) using live web search. The model searched the web for relevant judicial decisions, regulatory developments, and legal commentary, then synthesised findings into a structured report.'}</p>
+
+        ${queries.length > 0 ? `
+        <div class="search-queries-section">
+          <h4>Search Queries Executed</h4>
+          <div>${queries.map(q => `<span class="search-query-pill">${escHtml(q)}</span>`).join('')}</div>
+        </div>` : ''}
+
+        <h4>Known Limitations & Sources of Bias</h4>
+        <div class="bias-row">
+          <span class="bias-tag caution">⚠ English-language bias</span>
+          <span class="bias-tag caution">⚠ Recency bias</span>
+          <span class="bias-tag warning">⚠ Search engine coverage gaps</span>
+          <span class="bias-tag info">ℹ AI inference from partial data</span>
+          <span class="bias-tag info">ℹ Training data cutoff</span>
+        </div>
+        <ul>
+          <li><strong>English-language bias:</strong> Web search results are predominantly in English. Decisions from civil-law jurisdictions (e.g. France, Germany, Japan, Brazil) or those not published in English may be systematically underrepresented, even where those courts have considered the same provisions.</li>
+          <li><strong>Recency bias:</strong> The model prioritises recently indexed content. Older, highly relevant decisions may be omitted if they do not appear prominently in current search results.</li>
+          <li><strong>Search engine coverage gaps:</strong> Many tax tribunal and administrative court databases are behind paywalls (e.g. IBFD, Kluwer, LexisNexis). Free-access results may not reflect the full global caseload.</li>
+          <li><strong>AI inference from incomplete data:</strong> Where source documents are paywalled or unavailable, the model may summarise based on secondary commentary, which can introduce inaccuracies or characterise a decision's holding incompletely.</li>
+          <li><strong>Training data cutoff:</strong> The model's background legal knowledge has a knowledge cutoff and may contain outdated characterisations of the state of the law, even when supplemented by live search.</li>
+          <li><strong>No independent verification:</strong> Case citations, court names, and dates have not been independently verified against primary databases. Always confirm citations before relying on them professionally.</li>
+        </ul>
+
+        <h4>Analytical Methodology</h4>
+        <p>The Analysis & Commentary section represents the model's synthesis of retrieved sources. It applies a comparative methodology: findings are assessed against the OECD Commentary on the OECD Model Tax Convention and, where relevant, the MLI Explanatory Statement, to identify alignment or divergence. The model attempts to identify emerging interpretive trends across jurisdictions, though this inference is limited by the sources retrieved in a given run.</p>
+        <p><strong>This report is not legal advice.</strong> It is an automated research digest intended to assist qualified practitioners in identifying developments requiring further review. All findings should be independently verified before being relied upon in any professional, judicial, or commercial context.</p>
+
+      </div>
+    </div>`;
+
+  return `
+    <div class="result-content">
+      <div class="result-header">
+        <div class="result-timestamp">Report generated: ${new Date(alert.lastRun).toLocaleString()}</div>
+      </div>
+      <div class="report-body">${markdownToHtml(alert.lastResult)}</div>
+      ${sourcesHtml}
+      ${methodologyHtml}
+    </div>`;
+}
+
+// ─── RUN ALERT ────────────────────────────────────────────────────────────────
+
+async function runAlert(id) {
+  const alert = alerts.find(a => a.id === id);
+  if (!alert) return;
+
+  const btn = document.getElementById('runBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.querySelector('.loading-text').style.display = 'inline';
+  if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+
+  activeAbortController = new AbortController();
+  const signal = activeAbortController.signal;
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const systemPrompt = `You are a specialist legal research assistant with expertise in international tax law, treaty interpretation, and comparative jurisprudence. 
+
+Your task is to produce a structured weekly legal research report. Today's date is ${today}.
+
+Always respond in clean Markdown with the following structure:
+# Weekly Legal Research Report — [Alert Name]
+**Period:** [date range covered]
+**Generated:** ${today}
+
+---
+
+## Summary
+[2-3 sentence executive summary of findings]
+
+## New Developments
+[For each case or development found: case name, jurisdiction, court/tribunal, date, and substantive analysis. If none found in the period, state clearly.]
+
+## Analysis & Commentary
+[Notable trends, novel interpretations, comparison with OECD/UN Commentary where relevant, dissenting views]
+
+## No-Results Note (if applicable)
+[If no new cases were found, note the most recent precedent you are aware of and any pending cases to watch]
+
+---
+*Report auto-generated by Legal Research Alerts*`;
+
+  const userMessage = `Please produce a weekly legal research report on the following topic. Use web search to find the most recent judicial decisions, rulings, or legal developments.
+
+RESEARCH BRIEF:
+${alert.query}
+
+Today is ${today}. Focus on developments from the past 7 days if possible, but note the most recent available precedent if no new cases exist.`;
+
+  try {
+    const response = await fetch('/api/research', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 3000,
+        system: systemPrompt,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: userMessage }]
+      })
+    });
+
+    const data = await response.json();
+    const blocks = data.content || [];
+
+    // ── Extract main text ────────────────────────────────────────────
+    const fullText = blocks
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('\n');
+
+    // ── Extract search queries from tool_use blocks ─────────────────
+    const searchQueries = blocks
+      .filter(b => b.type === 'tool_use' && b.name === 'web_search')
+      .map(b => b.input?.query || b.input?.q || '')
+      .filter(Boolean);
+
+    // ── Extract sources from tool_result blocks ─────────────────────
+    const sources = [];
+    const seenUrls = new Set();
+
+    blocks
+      .filter(b => b.type === 'tool_result')
+      .forEach(block => {
+        const content = block.content || [];
+        content.forEach(c => {
+          if (c.type === 'text') {
+            // Parse JSON array of search results if present
+            try {
+              const parsed = JSON.parse(c.text);
+              const results = Array.isArray(parsed) ? parsed : (parsed.results || parsed.organic_results || []);
+              results.forEach(r => {
+                const url = r.url || r.link || r.href || '';
+                if (url && !seenUrls.has(url)) {
+                  seenUrls.add(url);
+                  sources.push({
+                    title: r.title || r.name || 'Untitled',
+                    url: url,
+                    snippet: r.snippet || r.description || r.body || ''
+                  });
+                }
+              });
+            } catch {
+              // Fallback: extract URLs with regex from raw text
+              const urlRegex = /https?:\/\/[^\s"'\]>)]+/g;
+              const titleRegex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
+              let m;
+              // Markdown links first
+              while ((m = titleRegex.exec(c.text)) !== null) {
+                const url = m[2];
+                if (!seenUrls.has(url)) {
+                  seenUrls.add(url);
+                  sources.push({ title: m[1], url: url, snippet: '' });
+                }
+              }
+              // Bare URLs
+              let match;
+              while ((match = urlRegex.exec(c.text)) !== null) {
+                const url = match[0].replace(/[.,;:!?]+$/, '');
+                if (!seenUrls.has(url)) {
+                  seenUrls.add(url);
+                  sources.push({ title: new URL(url).hostname, url: url, snippet: '' });
+                }
+              }
+            }
+          }
+        });
+      });
+
+    // Also scan main text for any markdown-linked sources not caught above
+    const mdLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
+    let ml;
+    while ((ml = mdLinkRegex.exec(fullText)) !== null) {
+      const url = ml[2];
+      if (!seenUrls.has(url)) {
+        seenUrls.add(url);
+        sources.push({ title: ml[1], url: url, snippet: '' });
+      }
+    }
+
+    alert.lastResult = fullText || '_No results returned. The API may be unavailable._';
+    alert.lastSources = sources;
+    alert.lastSearchQueries = searchQueries;
+    alert.lastRun = new Date().toISOString();
+    save();
+    renderAlertList();
+    renderMainContent(alert);
+
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      // User cancelled — leave existing results intact, just reset UI
+    } else {
+      alert.lastResult = `**Error running research:** ${err.message}\n\nPlease try again.`;
+      alert.lastRun = new Date().toISOString();
+      save();
+      renderMainContent(alert);
+    }
+  } finally {
+    activeAbortController = null;
+    const b = document.getElementById('runBtn');
+    const cb = document.getElementById('cancelBtn');
+    if (b) { b.disabled = false; b.classList.remove('loading'); }
+    if (cb) cb.style.display = 'none';
+  }
+}
+
+// ─── CRUD ─────────────────────────────────────────────────────────────────────
+
+function addAlert() {
+  const name = document.getElementById('newName').value.trim();
+  const query = document.getElementById('newQuery').value.trim();
+  const frequency = document.getElementById('newFrequency').value;
+  if (!name || !query) { alert('Please provide both a name and a research query.'); return; }
+
+  const newAlert = {
+    id: 'alert-' + Date.now(),
+    name, query, frequency,
+    lastRun: null,
+    lastResult: null
+  };
+
+  alerts.push(newAlert);
+  save();
+  document.getElementById('newName').value = '';
+  document.getElementById('newQuery').value = '';
+  renderAlertList();
+  selectAlert(newAlert.id);
+}
+
+function deleteAlert(id) {
+  if (!confirm('Delete this alert?')) return;
+  alerts = alerts.filter(a => a.id !== id);
+  if (activeAlertId === id) {
+    activeAlertId = null;
+    document.getElementById('mainContent').innerHTML = `<div class="welcome-pane"><h2>Alert deleted.</h2><p>Select another alert or add a new one.</p></div>`;
+  }
+  save();
+  renderAlertList();
+}
+
+function openEditModal(id) {
+  editingAlertId = id;
+  const a = alerts.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById('editName').value = a.name;
+  document.getElementById('editQuery').value = a.query;
+  document.getElementById('editFrequency').value = a.frequency;
+  document.getElementById('editModal').classList.add('open');
+}
+
+function saveEdit() {
+  const a = alerts.find(x => x.id === editingAlertId);
+  if (!a) return;
+  a.name = document.getElementById('editName').value.trim();
+  a.query = document.getElementById('editQuery').value.trim();
+  a.frequency = document.getElementById('editFrequency').value;
+  save();
+  closeModal();
+  renderAlertList();
+  if (activeAlertId === editingAlertId) renderMainContent(a);
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingAlertId = null;
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function relativeTime(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+}
+
+// Minimal Markdown → HTML
+function markdownToHtml(md) {
+  if (!md) return '';
+  let html = md
+    // Headings
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    // HR
+    .replace(/^---$/gm, '<hr>')
+    // Bold
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    // Inline code
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // Blockquote
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    // Unordered list items
+    .replace(/^\s*[-*] (.+)$/gm, '<li>$1</li>')
+    // Wrap consecutive <li> in <ul>
+    .replace(/(<li>.*<\/li>)(\n<li>.*<\/li>)*/gs, m => `<ul>${m}</ul>`)
+    // Paragraphs (lines not already wrapped)
+    .split('\n\n')
+    .map(block => {
+      block = block.trim();
+      if (!block) return '';
+      if (/^<(h[1-3]|ul|blockquote|hr)/.test(block)) return block;
+      return `<p>${block.replace(/\n/g, ' ')}</p>`;
+    })
+    .join('\n');
+  return html;
+}
+
+function cancelAlert() {
+  if (activeAbortController) {
+    activeAbortController.abort();
+    activeAbortController = null;
+  }
+}
+
+// ─── METHODOLOGY TOGGLE ───────────────────────────────────────────────────────
+
+function toggleMethodology(btn) {
+  btn.classList.toggle('open');
+  const body = btn.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+document.getElementById('currentDate').textContent =
+  new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+renderAlertList();
+</script>
+</body>
+</html>

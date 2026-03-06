@@ -1315,7 +1315,7 @@ Today is ${today}. Focus on developments from the past 7 days if possible, but n
       signal,
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 3000,
+        max_tokens: 8000,
         system: systemPrompt,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: userMessage }]

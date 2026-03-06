@@ -22,7 +22,7 @@ app.post('/api/research', async (req, res) => {
     const body = req.body;
 
     // Safety: only allow the model we expect, ignore any model override from client
-    body.model = 'claude-sonnet-4-5';
+    body.model = 'claude-sonnet-4-6';
 
     // Always include web search tool
     body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];

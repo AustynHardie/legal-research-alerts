@@ -987,9 +987,112 @@
   .btn-clear-key:hover { color: #c00; border-color: #c00; }
   .api-key-hint { font-size: 0.68rem; color: var(--muted); }
   .api-key-hint a { color: var(--accent); }
+
+  /* PIN GATE */
+  .pin-gate {
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0;
+  }
+  .pin-gate.hidden { display: none; }
+  .pin-gate-inner {
+    width: 340px;
+    text-align: center;
+  }
+  .pin-gate-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .pin-gate-logo em { font-style: italic; color: var(--accent); }
+  .pin-gate-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+  .pin-gate-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .pin-gate-input {
+    width: 100%;
+    background: white;
+    border: 1px solid var(--rule);
+    border-bottom: 2px solid var(--accent);
+    padding: 12px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.3em;
+    color: var(--ink);
+    text-align: center;
+    outline: none;
+    border-radius: 0;
+    margin-bottom: 16px;
+  }
+  .pin-gate-input:focus { border-color: var(--accent); border-bottom-color: var(--accent-light); }
+  .pin-gate-btn {
+    width: 100%;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: background 0.15s;
+    margin-bottom: 14px;
+  }
+  .pin-gate-btn:hover { background: var(--accent-light); }
+  .pin-gate-error {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: #c00;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    min-height: 18px;
+  }
+  .pin-gate-divider {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 36px 0 28px;
+  }
 </style>
 </head>
 <body>
+
+<!-- PIN GATE OVERLAY -->
+<div class="pin-gate" id="pinGate">
+  <div class="pin-gate-inner">
+    <div class="pin-gate-logo">Legal Research <em>Alerts</em></div>
+    <div class="pin-gate-sub">Canadian International Tax · MLI Monitor</div>
+    <hr class="pin-gate-divider">
+    <label class="pin-gate-label" for="pinInput">Access PIN</label>
+    <input class="pin-gate-input" type="password" id="pinInput" maxlength="20"
+           placeholder="· · · · ·" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter') submitPin()" />
+    <button class="pin-gate-btn" onclick="submitPin()">Enter</button>
+    <div class="pin-gate-error" id="pinError"></div>
+  </div>
+</div>
 
 <header class="masthead">
   <div class="masthead-top">
@@ -1083,9 +1186,48 @@
 
 const DEFAULT_ALERTS = [
   {
+    id: 'foreign-mli-case-law',
+    name: 'Foreign MLI Case Law — Global Tracker',
+    query: `Foreign MLI Case Law: Global — New court and tribunal decisions interpreting the OECD Multilateral Instrument (MLI), with analysis of implications for Canadian treaty structures.
+
+Search each of the following databases for decisions referencing the MLI, the principal purpose test (PPT), dependent agent PE, dual resident entities, or BEPS treaty abuse:
+
+NETHERLANDS (search first — highest volume):
+- uitspraken.rechtspraak.nl: search "MLI," "principale doel," "OESO Modelverdrag artikel 7," "vaste inrichting commissionnaire"
+- loyensloeff.com/insights: English summaries of recent Dutch tax decisions
+
+INDIA (search second — very high volume, English decisions):
+- indiankanoon.org: search "principal purpose test," "MLI," "BEPS," "tax treaty" + current year
+- itat.gov.in: recent ITAT decisions on treaty benefit claims
+
+AUSTRALIA (search third — English, common law, directly relevant to Canadian analysis):
+- austlii.edu.au: search Federal Court and AAT for "multilateral instrument" OR "principal purpose"
+- ato.gov.au/law: new ATO rulings or practice statements referencing MLI
+
+UNITED KINGDOM (search fourth — English, persuasive authority for Canadian courts):
+- bailii.org: search FTT and Upper Tribunal for "multilateral instrument" OR "principal purpose test" OR "Article 7 MLI"
+- gov.uk/tax-tribunals: recent FTT decisions
+
+FRANCE:
+- conseil-etat.fr: recent decisions referencing "convention fiscale" and "objet principal" or "MLI"
+- kluwertaxblog.com: English summaries of recent French decisions
+
+GERMANY:
+- bundesfinanzhof.de: recent BFH decisions; search "Multilaterales Instrument," "BEPS"
+
+For every decision found, provide: (1) Court/tribunal name, case citation, decision date, jurisdiction, direct URL; (2) MLI article at issue (Art. 7 PPT / Art. 4 dual resident / Art. 12 dep. agent PE / Art. 8 dividends / Art. 9 capital gains / Art. 13 activity exemptions); (3) Facts in brief; (4) Holding and court's reasoning; (5) Canadian relevance assessment — does Canada have a covered tax agreement with this jurisdiction including the same MLI article? Rate HIGH / MEDIUM / LOW with reasoning; (6) Novelty flag — is this the first decision from this jurisdiction on this article? Does it conflict with other jurisdictions or the OECD Explanatory Statement?
+
+MLI ARTICLES TO PRIORITIZE: Art. 7 (PPT) highest priority — flag immediately; Art. 12 (Dep. Agent PE); Art. 9 (Capital Gains / Land-Rich — very high Canadian exposure for resource sector); Art. 4 (Dual Resident); Art. 8 (Anti-Conduit).
+
+If no new decisions found in the past 30 days, provide the most recently decided significant case (within 6 months) not yet covered by Canadian practitioner publications, plus any pending cases expected to produce MLI decisions.`,
+    frequency: 'weekly',
+    lastRun: null,
+    lastResult: null
+  },
+  {
     id: 'mli-ppt',
     name: 'MLI Art. 7 — Principal Purpose Test',
-    query: `Search for any judicial decisions, tribunal rulings, court cases, or administrative proceedings from the past 7 days in any country that consider, interpret, or apply the Principal Purpose Test (PPT) under Article 7(1) of the OECD Multilateral Convention to Implement Tax Treaty Related Measures to Prevent Base Erosion and Profit Shifting (the MLI / Multilateral Instrument). 
+    query: `Search for any judicial decisions, tribunal rulings, court cases, or administrative proceedings from the past 7 days in any country that consider, interpret, or apply the Principal Purpose Test (PPT) under Article 7(1) of the OECD Multilateral Convention to Implement Tax Treaty Related Measures to Prevent Base Erosion and Profit Shifting (the MLI / Multilateral Instrument).
 
 Include: case names, jurisdictions, courts/tribunals, dates, and a substantive summary of how the PPT was applied or discussed. Note any novel interpretations, comparisons with the OECD Commentary, or dissenting views. If no new cases are found in the past 7 days, say so explicitly and note the most recent precedent you are aware of.`,
     frequency: 'weekly',
@@ -1095,6 +1237,17 @@ Include: case names, jurisdictions, courts/tribunals, dates, and a substantive s
 ];
 
 let alerts = JSON.parse(localStorage.getItem('legalAlerts') || 'null') || DEFAULT_ALERTS;
+
+// Seed new built-in alerts if missing from existing localStorage data
+let _seeded = false;
+DEFAULT_ALERTS.forEach(seed => {
+  if (!alerts.find(a => a.id === seed.id)) {
+    alerts.unshift({ ...seed });
+    _seeded = true;
+  }
+});
+if (_seeded) localStorage.setItem('legalAlerts', JSON.stringify(alerts));
+
 let activeAlertId = null;
 let editingAlertId = null;
 let activeAbortController = null;
@@ -1275,52 +1428,167 @@ async function runAlert(id) {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const systemPrompt = `You are a specialist legal research assistant with expertise in international tax law, treaty interpretation, and comparative jurisprudence. 
+  const lastRunDate = alert.lastRun ? new Date(alert.lastRun).toISOString().split('T')[0] : null;
 
-Your task is to produce a structured weekly legal research report. Today's date is ${today}.
+  const systemPrompt = `## ROLE AND MISSION
 
-Always respond in clean Markdown with the following structure:
-# Weekly Legal Research Report — [Alert Name]
-**Period:** [date range covered]
+You are a specialized Canadian international tax research assistant. Your mission is to identify and summarize the most current developments in Canadian international tax law, with a focus on early detection of changes — particularly foreign court decisions interpreting the MLI that Canadian practitioners are not yet tracking.
+
+The user is a Canadian researcher who publishes analysis of Canadian tax developments. Accuracy, speed, and specificity are the priorities. Vague summaries that could have been written six months ago are not useful. Today's date is ${today}.
+
+## SEARCH STRATEGY
+
+Your search priority order is as follows. Execute searches in this order.
+
+### PRIORITY 1: FOREIGN COURT DECISIONS INTERPRETING THE MLI
+
+This is the highest-priority source category. Search for foreign court and tribunal decisions that interpret MLI provisions, even if the decision does not involve Canada directly. A Dutch court applying Article 7 PPT, an Australian Federal Court decision on Article 9 capital gains, or an Indian ITAT ruling on Article 12 dependent agent PE all have direct implications for Canadian treaty structures.
+
+NETHERLANDS (highest MLI case law volume globally):
+- uitspraken.rechtspraak.nl — filter by "Belastingrecht"; search: "MLI," "principale doel," "principal purpose," "OESO," "vaste inrichting"
+- loyensloeff.com/insights — English summaries of Dutch tax decisions
+- stibbe.com/en/knowledge — Netherlands and Belgium tax decisions in English
+- akd.nl/en — Dutch tax decisions in English
+
+INDIA (very high volume, all decisions in English):
+- indiankanoon.org — search: "principal purpose test," "MLI," "BEPS," "tax treaty," "permanent establishment"
+- itat.gov.in — direct ITAT decisions
+- nishithdesai.com/information/research-articles — English analysis of Indian tax decisions
+
+AUSTRALIA (common law, English, highly persuasive for Canadian courts):
+- austlii.edu.au — search Federal Court and AAT for "multilateral instrument" OR "principal purpose" OR "MLI"
+- ato.gov.au/law — ATO rulings and practice statements referencing MLI
+
+UNITED KINGDOM (English, directly persuasive for Canadian courts):
+- bailii.org — FTT and Upper Tribunal; search "multilateral instrument" OR "principal purpose test" OR "Article 7 MLI"
+- gov.uk/tax-tribunals — First-tier Tribunal decisions
+
+FRANCE:
+- conseil-etat.fr — direct decisions in French
+- legifrance.gouv.fr — search "convention fiscale," "MLI," "objet principal"
+- kluwertaxblog.com — English summaries of significant French decisions
+
+GERMANY:
+- bundesfinanzhof.de — BFH decisions; search "Multilaterales Instrument," "Hauptzweck," "BEPS"
+- linklaters.com/en/insights or weil.com/insights — English summaries of BFH decisions
+
+CROSS-JURISDICTIONAL AGGREGATORS:
+- kluwertaxblog.com — academic commentary on significant international tax decisions
+- ssrn.com — search "MLI" + "Article 7" or "principal purpose test"
+
+MLI ARTICLES TO PRIORITIZE (in order):
+1. Article 7 (PPT) — highest volume globally; most relevant to Canadian holding structures
+2. Article 12 (Dependent Agent PE) — commissionnaire structures; Canada selected this article
+3. Article 9 (Capital Gains / Land-Rich) — resource sector M&A; very high Canadian exposure
+4. Article 4 (Dual Resident Entities) — UK-Canada dual-listed companies, managed funds
+5. Article 8 (Anti-Conduit Dividends) — intermediate holding structures
+
+### PRIORITY 2: OECD INTERPRETIVE DOCUMENTS
+
+- OECD MLI Explanatory Statement — primary legislative history; cite paragraph numbers
+- OECD BEPS Action 6 Final Report (2015) — source document for Article 7 PPT; courts cite specific paragraphs
+- OECD BEPS Action 7 Final Report (2015) — source document for Articles 12-15 (PE rules)
+- OECD Model Tax Convention Commentary (2017)
+- Canada MLI Position Document — Canada's specific reservations and option selections
+
+### PRIORITY 3: CANADIAN OFFICIAL SOURCES
+
+- canada.ca/en/department-finance — budget documents, consultation papers
+- canada.ca/en/revenue-agency — CRA technical interpretations, income tax folios, advance rulings
+- laws-lois.justice.gc.ca — Income Tax Act consolidated text
+- parl.ca and LEGISinfo — bill tracking
+
+### PRIORITY 4: CANADIAN PRACTITIONER COMMENTARY
+
+- Big Four Canada: EY (ey.com/ca), KPMG (kpmg.com/ca), PwC (pwc.com/ca), Deloitte (deloitte.com/ca)
+- Major Canadian tax firms: Osler (osler.com), Stikeman Elliott (stikeman.com), Davies (dwpv.com), Bennett Jones (bennettjones.com), Torys (torys.com)
+
+### PRIORITY 5: INTERNATIONAL PRACTITIONER COMMENTARY (for non-English decisions)
+
+- Loyens & Loeff (loyensloeff.com/insights) — Netherlands
+- Linklaters (linklaters.com/en/insights) — EU, UK, Germany
+- Baker McKenzie (bakermckenzie.com/en/insight) — India, global
+- Nishith Desai (nishithdesai.com) — India
+- Mayer Brown (mayerbrown.com/en/insights) — France, Germany, UK
+
+## OUTPUT FORMAT
+
+Always respond in clean Markdown:
+
+# Research Report — [Alert Name]
+**Period covered:** [date range]
 **Generated:** ${today}
 
 ---
 
-## Summary
-[2-3 sentence executive summary of findings]
+### BREAKING / VERY RECENT (last 30 days)
+[Any developments from the past 30 days. If none: "No developments found in the past 30 days on this topic."]
 
-## New Developments
-[For each case or development found: case name, jurisdiction, court/tribunal, date, and substantive analysis. If none found in the period, state clearly.]
+### FOREIGN CASE LAW
+[For each foreign decision found: court name, case citation, decision date, jurisdiction, URL or database reference; MLI article at issue; facts in brief (2-3 sentences); holding and court's reasoning; Canadian relevance (HIGH/MEDIUM/LOW with explanation of which Canadian treaty pairs or structure types are implicated); novelty flag (first decision from this jurisdiction on this article? Conflicts with other jurisdictions or OECD Explanatory Statement?)]
 
-## Analysis & Commentary
-[Notable trends, novel interpretations, comparison with OECD/UN Commentary where relevant, dissenting views]
+### CURRENT POSITION
+[Current legal position with specific citations: treaty article numbers, ITA section numbers, OECD paragraph numbers. Flag each: SETTLED LAW / PROPOSED / PENDING ROYAL ASSENT / EVOLVING INTERPRETATION]
 
-## No-Results Note (if applicable)
-[If no new cases were found, note the most recent precedent you are aware of and any pending cases to watch]
+### PENDING DEVELOPMENTS
+[Announced-but-not-yet-in-force changes, open consultations, expected upcoming actions, consultation deadlines]
 
----
-*Report auto-generated by Legal Research Alerts*`;
+### EARLY SIGNALS
+[Working group outputs, academic commentary, advisory reports signalling upcoming policy changes — most important for first-to-publish workflow]
 
-  const userMessage = `Please produce a weekly legal research report on the following topic. Use web search to find the most recent judicial decisions, rulings, or legal developments.
+### CANADIAN PUBLISHING ANGLE
+[2-3 sentences: what a Canadian researcher should write about based on these findings — specifically what foreign case law Canadian practitioners are not yet tracking]
+
+### KEY SOURCES
+[All sources with direct URLs and document dates]
+
+## PRECISION REQUIREMENTS
+
+- Never cite "the OECD guidelines" without a specific paragraph number
+- Never cite "the Canada-US treaty" without an article number
+- Always distinguish: Canada-US Convention (1980, as amended through Fifth Protocol 2007) vs. MLI modifications (note: US has NOT signed the MLI as of ${today})
+- Always flag whether a Canadian legislative proposal has received Royal Assent or remains in bill form
+- For Pillar Two: always distinguish IIR, QDMTT, and UTPR — they have different Canadian effective dates
+- For foreign case law: always note whether the decision is final or under appeal; note that ITAT decisions (India) are not binding precedent outside their bench
+
+## DISCLAIMER
+
+End every response with: "This summary is for research and publishing awareness purposes only. It does not constitute legal or tax advice. All positions should be verified against primary sources before publication or reliance."`;
+
+  const deltaInstruction = lastRunDate
+    ? `\n\nIMPORTANT: This alert was last run on ${lastRunDate}. Focus specifically on developments that are NEW since that date. If nothing material has changed since ${lastRunDate}, say so explicitly rather than re-summarizing prior positions. A result that says "no new developments since [date]" is a correct and useful answer.`
+    : '';
+
+  const userMessage = `Please produce a research report on the following topic. Use web search to find the most recent judicial decisions, rulings, or legal developments — prioritizing foreign court decisions interpreting the MLI before any other source category.
 
 RESEARCH BRIEF:
 ${alert.query}
 
-Today is ${today}. Focus on developments from the past 7 days if possible, but note the most recent available precedent if no new cases exist.`;
+Today is ${today}.${deltaInstruction}`;
 
   try {
     const response = await fetch('/api/research', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-pin': getPin() },
       signal,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
         max_tokens: 8000,
         system: systemPrompt,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: userMessage }]
       })
     });
+
+    if (response.status === 401) {
+      sessionStorage.removeItem('app_pin');
+      showPinGate('Session expired. Please re-enter your PIN.');
+      return;
+    }
+
+    if (response.status === 429) {
+      const data = await response.json();
+      alert(data.error || 'Rate limit exceeded. Please wait before running another report.');
+      return;
+    }
 
     const data = await response.json();
     const blocks = data.content || [];
@@ -1553,12 +1821,60 @@ function toggleMethodology(btn) {
   body.classList.toggle('open');
 }
 
+// ─── PIN GATE ─────────────────────────────────────────────────────────────────
+
+function getPin() {
+  return sessionStorage.getItem('app_pin') || '';
+}
+
+function showPinGate(errorMsg) {
+  const gate = document.getElementById('pinGate');
+  gate.classList.remove('hidden');
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinError').textContent = errorMsg || '';
+  setTimeout(() => document.getElementById('pinInput').focus(), 50);
+}
+
+function hidePinGate() {
+  document.getElementById('pinGate').classList.add('hidden');
+}
+
+async function submitPin() {
+  const pin = document.getElementById('pinInput').value.trim();
+  if (!pin) return;
+
+  // Test the PIN against a lightweight probe request
+  const res = await fetch('/api/research', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-pin': pin },
+    body: JSON.stringify({ max_tokens: 1, messages: [{ role: 'user', content: '.' }] })
+  });
+
+  // 401 = wrong PIN; anything else (200, 4xx API error, 429) means PIN was accepted
+  if (res.status === 401) {
+    document.getElementById('pinError').textContent = 'Incorrect PIN — try again.';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+    return;
+  }
+
+  sessionStorage.setItem('app_pin', pin);
+  hidePinGate();
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
 document.getElementById('currentDate').textContent =
   new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
 renderAlertList();
+
+// Show PIN gate if no PIN stored in session
+if (!getPin()) {
+  showPinGate();
+} else {
+  hidePinGate();
+}
 </script>
 </body>
 </html>

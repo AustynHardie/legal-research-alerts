@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static('public'));
 
-// ── Validate API key is set ───────────────────────────────────────────────────
+// ── Validate required env vars ────────────────────────────────────────────────
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 if (!ANTHROPIC_API_KEY) {
   console.error('ERROR: ANTHROPIC_API_KEY environment variable is not set.');
@@ -14,10 +14,52 @@ if (!ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
+const APP_PIN = process.env.APP_PIN;
+if (!APP_PIN) {
+  console.warn('WARNING: APP_PIN is not set. The /api/research endpoint is unprotected.');
+}
+
+// ── PIN auth middleware ───────────────────────────────────────────────────────
+function requirePin(req, res, next) {
+  if (!APP_PIN) return next();
+  const pin = req.headers['x-pin'];
+  if (!pin || pin !== APP_PIN) {
+    return res.status(401).json({ error: 'Invalid or missing PIN.' });
+  }
+  next();
+}
+
+// ── Rate limiting (in-memory, no dependencies) ────────────────────────────────
+const rateLimitMap = new Map();
+const RATE_LIMIT = 10;           // max requests per window
+const RATE_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+function rateLimit(req, res, next) {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  let entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 0, resetAt: now + RATE_WINDOW_MS };
+  }
+
+  entry.count++;
+  rateLimitMap.set(ip, entry);
+
+  if (entry.count > RATE_LIMIT) {
+    const retryAfterSec = Math.ceil((entry.resetAt - now) / 1000);
+    res.set('Retry-After', retryAfterSec);
+    return res.status(429).json({
+      error: `Rate limit exceeded. Max ${RATE_LIMIT} requests per 15 minutes. Retry in ${Math.ceil(retryAfterSec / 60)} min.`
+    });
+  }
+  next();
+}
+
 // ── Proxy endpoint ────────────────────────────────────────────────────────────
 // The frontend POSTs its request body here; we forward it to Anthropic
 // with the API key injected server-side. The key never reaches the browser.
-app.post('/api/research', async (req, res) => {
+app.post('/api/research', requirePin, rateLimit, async (req, res) => {
   try {
     const body = req.body;
 

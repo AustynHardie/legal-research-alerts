@@ -41,8 +41,11 @@ In Render's **Environment** tab, add:
 | Key | Value |
 |-----|-------|
 | `ANTHROPIC_API_KEY` | `sk-ant-api03-...` |
+| `APP_PIN` | `your-pin` |
 
 Get your API key at [console.anthropic.com](https://console.anthropic.com)
+
+`APP_PIN` gates the site with a PIN prompt. If not set, the endpoint is unprotected (fine for local-only use).
 
 ### 4. Deploy
 

@@ -93,6 +93,7 @@ app.post('/api/research', requirePin, rateLimit, async (req, res) => {
     const data = await upstream.json();
 
     if (!upstream.ok) {
+      console.error('Anthropic error:', upstream.status, JSON.stringify(data));
       return res.status(upstream.status).json({
         error: data.error?.message || 'Anthropic API error',
         type: data.error?.type || 'api_error'

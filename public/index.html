@@ -1597,6 +1597,16 @@ Today is ${today}.${deltaInstruction}`;
     }
 
     const data = await response.json();
+
+    if (!response.ok) {
+      const msg = data.error || `API error (${response.status})`;
+      alert.lastResult = `**Error (${response.status}):** ${msg}`;
+      alert.lastRun = new Date().toISOString();
+      save();
+      renderMainContent(alert);
+      return;
+    }
+
     const blocks = data.content || [];
 
     // ── Extract main text ────────────────────────────────────────────

@@ -77,9 +77,7 @@ app.post('/api/research', requirePin, rateLimit, async (req, res) => {
     // Cap output tokens — 5000 balances report completeness vs. cost
     if (!body.max_tokens || body.max_tokens > 5000) body.max_tokens = 5000;
 
-    // Cap web searches to 5 — enough to cover all 6 key MLI jurisdictions while preventing
-    // runaway context accumulation (each result adds ~20-50k tokens to subsequent turns)
-    body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }];
+    body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
 
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

@@ -1572,7 +1572,7 @@ Today is ${today}.${deltaInstruction}`;
       headers: { 'Content-Type': 'application/json', 'x-pin': getPin() },
       signal,
       body: JSON.stringify({
-        max_tokens: 4000,
+        max_tokens: 5000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userMessage }]
       })

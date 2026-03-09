@@ -74,11 +74,12 @@ app.post('/api/research', requirePin, rateLimit, async (req, res) => {
     // Safety: only allow the model we expect, ignore any model override from client
     body.model = 'claude-sonnet-4-6';
 
-    // Cap output tokens — 4000 is plenty for a structured report
-    if (!body.max_tokens || body.max_tokens > 4000) body.max_tokens = 4000;
+    // Cap output tokens — 5000 balances report completeness vs. cost
+    if (!body.max_tokens || body.max_tokens > 5000) body.max_tokens = 5000;
 
-    // Cap web searches to 3 — each search result accumulates in context, driving up input tokens fast
-    body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }];
+    // Cap web searches to 5 — enough to cover all 6 key MLI jurisdictions while preventing
+    // runaway context accumulation (each result adds ~20-50k tokens to subsequent turns)
+    body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }];
 
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

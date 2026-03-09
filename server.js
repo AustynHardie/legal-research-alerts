@@ -66,8 +66,11 @@ app.post('/api/research', requirePin, rateLimit, async (req, res) => {
     // Safety: only allow the model we expect, ignore any model override from client
     body.model = 'claude-sonnet-4-6';
 
-    // Always include web search tool
-    body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+    // Cap output tokens — 4000 is plenty for a structured report
+    if (!body.max_tokens || body.max_tokens > 4000) body.max_tokens = 4000;
+
+    // Cap web searches to 3 — each search result accumulates in context, driving up input tokens fast
+    body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }];
 
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

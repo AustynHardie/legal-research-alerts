@@ -1584,6 +1584,12 @@ Today is ${today}.${deltaInstruction}`;
       return;
     }
 
+    if (response.status === 503) {
+      const data = await response.json();
+      alert('⏸ ' + (data.error || 'Service is paused. Enable it in Render environment variables.'));
+      return;
+    }
+
     if (response.status === 429) {
       const data = await response.json();
       alert(data.error || 'Rate limit exceeded. Please wait before running another report.');

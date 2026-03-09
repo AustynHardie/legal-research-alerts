@@ -56,10 +56,18 @@ function rateLimit(req, res, next) {
   next();
 }
 
+// ── Kill switch ───────────────────────────────────────────────────────────────
+// Set KILL_SWITCH=true in env to block all research requests instantly (no redeploy needed)
+const KILL_SWITCH = process.env.KILL_SWITCH === 'true';
+if (KILL_SWITCH) console.warn('WARNING: Kill switch is active. All research requests will be rejected.');
+
 // ── Proxy endpoint ────────────────────────────────────────────────────────────
 // The frontend POSTs its request body here; we forward it to Anthropic
 // with the API key injected server-side. The key never reaches the browser.
 app.post('/api/research', requirePin, rateLimit, async (req, res) => {
+  if (KILL_SWITCH) {
+    return res.status(503).json({ error: 'Service is currently paused. Set KILL_SWITCH=false to resume.' });
+  }
   try {
     const body = req.body;
 
